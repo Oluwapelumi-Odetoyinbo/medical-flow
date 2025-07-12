@@ -1,114 +1,86 @@
-import React, { useState, useEffect } from 'react';
-import { patientAPI } from '../services/api';
-import { Patient } from '../types/Patient';
-import PatientCard from '../components/common/PatientCard';
-import LoadingSpinner from '../components/common/LoadingSpinner';
-import EmptyState from '../components/common/EmptyState';
-import { Pill, Plus, X, Send, Clock } from 'lucide-react';
-import { showSuccessToast, showErrorToast } from '../utils/toast';
+"use client"
+
+import type React from "react"
+import { useState, useEffect } from "react"
+import { patientAPI } from "../services/api"
+import type { Patient } from "../types/Patient"
+import LoadingSpinner from "../components/common/LoadingSpinner"
+import EmptyState from "../components/common/EmptyState"
+import { Pill, X, CheckCircle } from "lucide-react"
 
 const PharmacistPage: React.FC = () => {
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [drugs, setDrugs] = useState<string[]>(['']);
-  const [dosage, setDosage] = useState('');
-  const [duration, setDuration] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [patients, setPatients] = useState<Patient[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
 
   useEffect(() => {
-    fetchPatients();
-  }, []);
+    fetchPatients()
+  }, [])
 
   const fetchPatients = async () => {
     try {
-      setLoading(true);
-      const data = await patientAPI.getPatientsByStatus('awaiting_medication');
-      console.log('Fetched patients:', data); // Debug log
-      setPatients(data);
+      setLoading(true)
+      const data = await patientAPI.getPatientsByStatus("awaiting_medication")
+      setPatients(data)
     } catch (error) {
-      console.error('Failed to fetch patients:', error);
-      showErrorToast('Failed to load patients. Please try again.');
+      console.error("Failed to fetch patients:", error)
+      alert("Failed to load patients. Please try again.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const handleSubmitMedication = async () => {
-    const validDrugs = drugs.filter(drug => drug.trim());
-    
-    if (!selectedPatient || validDrugs.length === 0 || !dosage.trim() || !duration.trim()) {
-      showErrorToast('Please fill in all medication details before submitting.');
-      return;
+  const handleDispenseMedication = async (patient: Patient) => {
+    if (!patient.doctorNotes?.instructions) {
+      alert("No treatment prescribed by doctor.")
+      return
     }
 
-    const patientId = selectedPatient._id || selectedPatient.id;
-    if (!patientId) {
-      showErrorToast('Invalid patient ID. Please refresh and try again.');
-      return;
-    }
-
-    console.log('Submitting medication for patient:', { patientId, selectedPatient }); // Debug log
-
-    setSubmitting(true);
+    setSubmitting(true)
     try {
-      await patientAPI.updateMedication(patientId, {
-        drugs: validDrugs,
-        dosage: dosage.trim(),
-        duration: duration.trim(),
-      });
-      
-      // Remove patient from list and reset form
-      setPatients(prev => prev.filter(p => {
-        const currentId = p._id || p.id;
-        return currentId !== patientId;
-      }));
-      setSelectedPatient(null);
-      setDrugs(['']);
-      setDosage('');
-      setDuration('');
-      
-      showSuccessToast(`Medication for ${selectedPatient.firstName} ${selectedPatient.lastName} dispensed successfully!`);
+      await patientAPI.updateStatus(patient.id!, "completed")
+      setPatients((prev) => prev.filter((p) => p.id !== patient.id))
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 5000)
     } catch (error) {
-      console.error('Failed to submit medication:', error);
-      showErrorToast('Failed to dispense medication. Please try again.');
+      console.error("Failed to dispense medication:", error)
+      alert("Failed to dispense medication. Please try again.")
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
-  const handleSelectPatient = (patient: Patient) => {
-    console.log('Selected patient:', patient); // Debug log
-    setSelectedPatient(patient);
-    setDrugs(['']);
-    setDosage('');
-    setDuration('');
-    showSuccessToast(`Now dispensing medication for ${patient.firstName} ${patient.lastName}`);
-  };
-
-  const addDrugField = () => {
-    setDrugs([...drugs, '']);
-  };
-
-  const removeDrugField = (index: number) => {
-    if (drugs.length > 1) {
-      setDrugs(drugs.filter((_, i) => i !== index));
-    }
-  };
-
-  const updateDrug = (index: number, value: string) => {
-    const newDrugs = [...drugs];
-    newDrugs[index] = value;
-    setDrugs(newDrugs);
-  };
+  const handleViewDetails = (patient: Patient) => {
+    setSelectedPatient(patient)
+    setShowDetailsModal(true)
+  }
 
   if (loading) {
-    return <LoadingSpinner text="Loading patients awaiting medication..." />;
+    return <LoadingSpinner text="Loading patients awaiting medication..." />
+  }
+
+  const calculateAge = (dateOfBirth: string) => {
+    return new Date().getFullYear() - new Date(dateOfBirth).getFullYear()
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Success Alert */}
+        {success && (
+          <div className="mb-6 rounded-md bg-green-50 p-4">
+            <div className="flex">
+              <CheckCircle className="h-5 w-5 text-green-400" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-green-800">Medication dispensed successfully!</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-2">
             <div className="p-3 bg-purple-100 rounded-lg">
@@ -119,167 +91,120 @@ const PharmacistPage: React.FC = () => {
               <p className="text-gray-600">Medication dispensing and patient completion</p>
             </div>
           </div>
-          <div className="flex items-center space-x-4 text-sm text-gray-600">
-            <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
-              {patients.length} patient{patients.length !== 1 ? 's' : ''} awaiting medication
-            </span>
-          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Patients List */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Awaiting Medication</h2>
-            
-            {patients.length === 0 ? (
-              <EmptyState
-                icon={Pill}
-                title="No patients awaiting medication"
-                description="All patients have received their medication or there are no prescriptions from doctors."
-              />
-            ) : (
-              <div className="space-y-4">
-                {patients.map((patient) => {
-                  const patientId = patient._id || patient.id;
-                  return (
-                    <PatientCard
-                      key={patientId}
-                      patient={patient}
-                      onClick={() => handleSelectPatient(patient)}
-                    >
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelectPatient(patient);
-                        }}
-                        className="w-full mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center space-x-2"
-                      >
-                        <Pill className="h-4 w-4" />
-                        <span>Dispense Medication</span>
-                      </button>
-                    </PatientCard>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Medication Form */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Medication Dispensing</h2>
-            
-            {selectedPatient ? (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="mb-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {selectedPatient.firstName} {selectedPatient.lastName}
-                  </h3>
-                  <div className="text-sm text-gray-600 mb-4">
-                    <p>Age: {new Date().getFullYear() - new Date(selectedPatient.dateOfBirth).getFullYear()} years</p>
-                    <p>Phone: {selectedPatient.phoneNumber}</p>
-                  </div>
-                  
-                  {selectedPatient.doctorNotes && (
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <h4 className="text-sm font-medium text-green-900 mb-2">Doctor's Prescription</h4>
-                      <div className="space-y-1 text-sm text-green-800">
-                        <p><span className="font-medium">Diagnosis:</span> {selectedPatient.doctorNotes.diagnosis}</p>
-                        <p><span className="font-medium">Treatment:</span> {selectedPatient.doctorNotes.treatment}</p>
+        {patients.length === 0 ? (
+          <EmptyState
+            icon={Pill}
+            title="No patients awaiting medication"
+            description="All patients have received their medication or there are no prescriptions from doctors."
+          />
+        ) : (
+          <div className="bg-white shadow-md rounded-lg overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {patients.map((patient) => (
+                  <tr key={patient.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {patient.firstName} {patient.lastName}
                       </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Pill className="h-4 w-4 inline mr-1" />
-                      Medications
-                    </label>
-                    <div className="space-y-2">
-                      {drugs.map((drug, index) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <input
-                            type="text"
-                            value={drug}
-                            onChange={(e) => updateDrug(index, e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                            placeholder="Enter medication name"
-                          />
-                          {drugs.length > 1 && (
-                            <button
-                              onClick={() => removeDrugField(index)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{calculateAge(patient.dateOfBirth)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{patient.address || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{patient.phoneNumber || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        Awaiting Medication
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
-                        onClick={addDrugField}
-                        className="flex items-center space-x-2 text-purple-600 hover:text-purple-700 text-sm"
+                        onClick={() => handleViewDetails(patient)}
+                        className="text-indigo-600 hover:text-indigo-900 mr-4"
                       >
-                        <Plus className="h-4 w-4" />
-                        <span>Add another medication</span>
+                        View Details
                       </button>
+                      <button
+                        onClick={() => handleDispenseMedication(patient)}
+                        className="text-green-600 hover:text-green-900"
+                        disabled={submitting}
+                      >
+                        Dispense
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Details Modal */}
+        {showDetailsModal && selectedPatient && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Patient Details
+                </h3>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {selectedPatient.nurseNotes && (
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">Nurse Notes</h4>
+                    <p className="text-sm text-blue-800">{selectedPatient.nurseNotes}</p>
+                  </div>
+                )}
+
+                {selectedPatient.doctorNotes && (
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-green-900 mb-2">Doctor's Notes</h4>
+                    <div className="space-y-2 text-sm text-green-800">
+                      <p><span className="font-medium">Diagnosis:</span> {selectedPatient.doctorNotes.diagnosis}</p>
+                      <p><span className="font-medium">Treatment:</span> {selectedPatient.doctorNotes.instructions}</p>
                     </div>
                   </div>
+                )}
 
-                  <div>
-                    <label htmlFor="dosage" className="block text-sm font-medium text-gray-700 mb-2">
-                      <Clock className="h-4 w-4 inline mr-1" />
-                      Dosage Instructions
-                    </label>
-                    <input
-                      type="text"
-                      id="dosage"
-                      value={dosage}
-                      onChange={(e) => setDosage(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      placeholder="e.g., 2 tablets twice daily"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
-                      <Clock className="h-4 w-4 inline mr-1" />
-                      Duration
-                    </label>
-                    <input
-                      type="text"
-                      id="duration"
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      placeholder="e.g., 7 days, 2 weeks, as needed"
-                    />
-                  </div>
-
+                <div className="mt-6 flex justify-end">
                   <button
-                    onClick={handleSubmitMedication}
-                    disabled={submitting || !drugs.some(d => d.trim()) || !dosage.trim() || !duration.trim()}
-                    className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+                    onClick={() => setShowDetailsModal(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
                   >
-                    <Send className="h-4 w-4" />
-                    <span>{submitting ? 'Dispensing...' : 'Complete Treatment'}</span>
+                    Close
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <EmptyState
-                  icon={Pill}
-                  title="Select a patient"
-                  description="Choose a patient from the list to dispense medication."
-                />
-              </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default PharmacistPage;
+export default PharmacistPage

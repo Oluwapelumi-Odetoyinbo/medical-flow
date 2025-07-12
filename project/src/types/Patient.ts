@@ -13,7 +13,7 @@ export interface Patient {
   nurseNotes?: string;
   doctorNotes?: {
     diagnosis: string;
-    treatment: string;
+    instructions: string;
   };
   medication?: {
     drugs: string[];
@@ -36,7 +36,7 @@ export interface RegisterPatientData {
 }
 
 export interface NurseNotesData {
-  notes: string;
+  nurseNotes: string; // Backend expects 'nurseNotes' not 'nurseNote'
 }
 
 export interface DoctorNotesData {
