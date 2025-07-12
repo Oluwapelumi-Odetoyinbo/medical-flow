@@ -11,10 +11,10 @@ export interface Patient {
   updatedAt: string;
   age?: number;
   nurseNotes?: string;
-  doctorNotes?: {
-    diagnosis: string;
-    instructions: string;
-  };
+      doctorNote?: {
+      diagnosis: string;
+      instructions: string;
+    };
   medication?: {
     drugs: string[];
     dosage: string;
@@ -41,7 +41,7 @@ export interface NurseNotesData {
 
 export interface DoctorNotesData {
   diagnosis: string;
-  treatment: string;
+  instructions: string;
 }
 
 export interface MedicationData {

@@ -34,20 +34,24 @@ const PharmacistPage: React.FC = () => {
   }
 
   const handleDispenseMedication = async (patient: Patient) => {
-    if (!patient.doctorNotes?.instructions) {
+    if (!patient.doctorNote?.instructions) {
       alert("No treatment prescribed by doctor.")
       return
     }
 
     setSubmitting(true)
     try {
-      await patientAPI.updateStatus(patient.id!, "completed")
-      setPatients((prev) => prev.filter((p) => p.id !== patient.id))
+      await patientAPI.updateMedication(patient._id!)
+      
+      // Update patient list
+      setPatients((prev) => prev.filter((p) => p._id !== patient._id))
+      
+      // Show success message
       setSuccess(true)
       setTimeout(() => setSuccess(false), 5000)
     } catch (error) {
-      console.error("Failed to dispense medication:", error)
-      alert("Failed to dispense medication. Please try again.")
+      console.error("Failed to mark medication as dispensed:", error)
+      alert("Failed to mark as dispensed. Please try again.")
     } finally {
       setSubmitting(false)
     }
@@ -114,7 +118,7 @@ const PharmacistPage: React.FC = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {patients.map((patient) => (
-                  <tr key={patient.id} className="hover:bg-gray-50">
+                  <tr key={patient._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {patient.firstName} {patient.lastName}
@@ -146,7 +150,7 @@ const PharmacistPage: React.FC = () => {
                         className="text-green-600 hover:text-green-900"
                         disabled={submitting}
                       >
-                        Dispense
+                        Mark as Dispensed
                       </button>
                     </td>
                   </tr>
@@ -180,12 +184,18 @@ const PharmacistPage: React.FC = () => {
                   </div>
                 )}
 
-                {selectedPatient.doctorNotes && (
+                {selectedPatient.doctorNote && (
                   <div className="bg-green-50 p-4 rounded-lg">
                     <h4 className="text-sm font-medium text-green-900 mb-2">Doctor's Notes</h4>
                     <div className="space-y-2 text-sm text-green-800">
-                      <p><span className="font-medium">Diagnosis:</span> {selectedPatient.doctorNotes.diagnosis}</p>
-                      <p><span className="font-medium">Treatment:</span> {selectedPatient.doctorNotes.instructions}</p>
+                      <div className="mb-2">
+                        <p className="font-medium mb-1">Diagnosis:</p>
+                        <p className="whitespace-pre-wrap">{selectedPatient.doctorNote.diagnosis}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium mb-1">Instructions:</p>
+                        <p className="whitespace-pre-wrap">{selectedPatient.doctorNote.instructions}</p>
+                      </div>
                     </div>
                   </div>
                 )}

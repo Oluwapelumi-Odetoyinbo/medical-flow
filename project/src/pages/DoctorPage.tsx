@@ -13,7 +13,7 @@ const DoctorPage: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [diagnosis, setDiagnosis] = useState("")
-  const [treatment, setTreatment] = useState("")
+  const [instructions, setInstructions] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -37,8 +37,8 @@ const DoctorPage: React.FC = () => {
   }
 
   const handleSubmitDoctorNotes = async () => {
-    if (!selectedPatient || !selectedPatient._id || !diagnosis.trim() || !treatment.trim()) {
-      alert("Please fill in both diagnosis and treatment before submitting.")
+    if (!selectedPatient || !selectedPatient._id || !diagnosis.trim() || !instructions.trim()) {
+      alert("Please fill in both diagnosis and instructions before submitting.")
       return
     }
 
@@ -47,14 +47,14 @@ const DoctorPage: React.FC = () => {
       // Add type assertion since we've checked _id exists
       await patientAPI.updateDoctorNotes(selectedPatient._id as string, {
         diagnosis: diagnosis.trim(),
-        treatment: treatment.trim(),
+        instructions: instructions.trim(),
       })
 
       // Remove patient from list and reset form
       setPatients((prev) => prev.filter((p) => p._id !== selectedPatient._id))
       setSelectedPatient(null)
       setDiagnosis("")
-      setTreatment("")
+      setInstructions("")
       setIsModalOpen(false)
 
       // Show success message
@@ -71,7 +71,7 @@ const DoctorPage: React.FC = () => {
   const handleSelectPatient = (patient: Patient) => {
     setSelectedPatient(patient)
     setDiagnosis("")
-    setTreatment("")
+    setInstructions("")
     setIsModalOpen(true)
   }
 
@@ -270,17 +270,17 @@ const DoctorPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label htmlFor="treatment" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-2">
                         <Stethoscope className="h-4 w-4 inline mr-1" />
-                        Treatment & Instructions
+                        Instructions
                       </label>
                       <textarea
-                        id="treatment"
-                        value={treatment}
-                        onChange={(e) => setTreatment(e.target.value)}
+                        id="instructions"
+                        value={instructions}
+                        onChange={(e) => setInstructions(e.target.value)}
                         rows={5}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all resize-none"
-                        placeholder="Enter treatment plan, instructions, and recommendations..."
+                        placeholder="Enter treatment instructions and recommendations..."
                       />
                       <p className="mt-1 text-sm text-gray-500">
                         Include medication requirements, lifestyle changes, and follow-up instructions.
@@ -296,7 +296,7 @@ const DoctorPage: React.FC = () => {
                       </button>
                       <button
                         onClick={handleSubmitDoctorNotes}
-                        disabled={submitting || !diagnosis.trim() || !treatment.trim()}
+                        disabled={submitting || !diagnosis.trim() || !instructions.trim()}
                         className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
                       >
                         <Send className="h-4 w-4" />

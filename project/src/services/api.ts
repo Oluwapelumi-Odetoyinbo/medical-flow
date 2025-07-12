@@ -82,14 +82,23 @@ export const patientAPI = {
   // Update doctor notes
   updateDoctorNotes: async (patientId: string, data: DoctorNotesData): Promise<Patient> => {
     if (!patientId) throw new Error("Patient ID is required")
-    const response = await api.patch(`/patients/${patientId}/doctor-note`, data)
+    const response = await api.patch(`/patients/${patientId}/doctor-note`, {
+      doctorNote: data // Wrap the data in doctorNote object to match backend expectation
+    })
     return response.data
   },
 
-  // Update medication
-  updateMedication: async (patientId: string, data: MedicationData): Promise<Patient> => {
+  // Mark medication as dispensed
+  updateMedication: async (patientId: string): Promise<Patient> => {
     if (!patientId) throw new Error("Patient ID is required")
-    const response = await api.patch(`/patients/${patientId}/medication`, data)
+    const response = await api.patch(`/patients/${patientId}/medication`, {})
+    return response.data
+  },
+
+  // Update patient status
+  updateStatus: async (patientId: string, status: string): Promise<Patient> => {
+    if (!patientId) throw new Error("Patient ID is required")
+    const response = await api.patch(`/patients/${patientId}/status`, { status })
     return response.data
   },
 }
