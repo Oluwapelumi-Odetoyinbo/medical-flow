@@ -34,14 +34,19 @@ const PharmacistPage: React.FC = () => {
   }
 
   const handleDispenseMedication = async (patient: Patient) => {
-    if (!patient.doctorNote?.instructions) {
-      alert("No treatment prescribed by doctor.")
+    if (!patient._id) {
+      alert("Invalid patient record.")
+      return
+    }
+
+    if (!patient.doctorNote?.instructions && !patient.doctorNote?.diagnosis) {
+      alert("No treatment prescribed by doctor. Please ensure doctor has completed the consultation.")
       return
     }
 
     setSubmitting(true)
     try {
-      await patientAPI.updateMedication(patient._id!)
+      await patientAPI.updateMedication(patient._id)
       
       // Update patient list
       setPatients((prev) => prev.filter((p) => p._id !== patient._id))

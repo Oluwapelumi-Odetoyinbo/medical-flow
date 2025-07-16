@@ -54,7 +54,7 @@ export const patientAPI = {
 
   // Get patients by status
   getPatientsByStatus: async (status: string | undefined): Promise<Patient[]> => {
-    const url = status ? `/patients?status=${status}&include=nurseNotes&sort=createdAt` : "/patients?sort=createdAt"
+    const url = status ? `/patients?status=${status}&include=nurseNotes,doctorNotes&sort=createdAt` : "/patients?sort=createdAt"
     const response = await api.get(url)
     console.log('API Response for status', status, ':', response.data)
     return response.data
@@ -83,7 +83,9 @@ export const patientAPI = {
   updateDoctorNotes: async (patientId: string, data: DoctorNotesData): Promise<Patient> => {
     if (!patientId) throw new Error("Patient ID is required")
     const response = await api.patch(`/patients/${patientId}/doctor-note`, {
-      doctorNote: data // Wrap the data in doctorNote object to match backend expectation
+      diagnosis: data.diagnosis,
+      instructions: data.instructions,
+      status: 'awaiting_medication'
     })
     return response.data
   },
