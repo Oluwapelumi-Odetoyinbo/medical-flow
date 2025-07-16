@@ -37,8 +37,8 @@ const DoctorPage: React.FC = () => {
   }
 
   const handleSubmitDoctorNotes = async () => {
-    if (!selectedPatient || !selectedPatient._id || !diagnosis.trim() || !instructions.trim()) {
-      alert("Please fill in both diagnosis and instructions before submitting.")
+    if (!selectedPatient || !selectedPatient._id || !instructions.trim()) {
+      alert("Please fill in treatment instructions before submitting.")
       return
     }
 
@@ -46,7 +46,7 @@ const DoctorPage: React.FC = () => {
     try {
       // Add type assertion since we've checked _id exists
       await patientAPI.updateDoctorNotes(selectedPatient._id as string, {
-        diagnosis: diagnosis.trim(),
+        diagnosis: diagnosis.trim() || "No diagnosis provided",
         instructions: instructions.trim(),
       })
 
@@ -257,7 +257,7 @@ const DoctorPage: React.FC = () => {
                     <div>
                       <label htmlFor="diagnosis" className="block text-sm font-medium text-gray-700 mb-2">
                         <ClipboardList className="h-4 w-4 inline mr-1" />
-                        Diagnosis
+                        Diagnosis (Optional)
                       </label>
                       <textarea
                         id="diagnosis"
@@ -265,7 +265,7 @@ const DoctorPage: React.FC = () => {
                         onChange={(e) => setDiagnosis(e.target.value)}
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all resize-none"
-                        placeholder="Enter primary and secondary diagnosis..."
+                        placeholder="Enter primary and secondary diagnosis (optional)..."
                       />
                     </div>
 
@@ -296,7 +296,7 @@ const DoctorPage: React.FC = () => {
                       </button>
                       <button
                         onClick={handleSubmitDoctorNotes}
-                        disabled={submitting || !diagnosis.trim() || !instructions.trim()}
+                        disabled={submitting || !instructions.trim()}
                         className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
                       >
                         <Send className="h-4 w-4" />

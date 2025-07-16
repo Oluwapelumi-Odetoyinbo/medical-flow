@@ -2,6 +2,8 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
+import DatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css"
 import { patientAPI } from "../services/api"
 import { calculateAge } from "../utils/dateUtils"
 import { UserPlus, Calendar, Phone, MapPin, User, CheckCircle, X, Search, Filter } from "lucide-react"
@@ -275,12 +277,22 @@ const RegistrationPage: React.FC = () => {
                   <Calendar className="h-4 w-4 inline mr-1" />
                   Date of Birth
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   id="dateOfBirth"
-                  name="dateOfBirth"
-                  value={formData.dateOfBirth}
-                  onChange={handleChange}
+                  selected={formData.dateOfBirth ? new Date(formData.dateOfBirth) : null}
+                  onChange={(date: Date) => {
+                    const formattedDate = date.toISOString().split('T')[0]
+                    setFormData(prev => ({ ...prev, dateOfBirth: formattedDate }))
+                    if (errors.dateOfBirth) {
+                      setErrors(prev => ({ ...prev, dateOfBirth: "" }))
+                    }
+                  }}
+                  dateFormat="dd/MM/yyyy"
+                  showMonthDropdown
+                  showYearDropdown
+                  dropdownMode="select"
+                  maxDate={new Date()}
+                  placeholderText="Select date of birth"
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
                     errors.dateOfBirth ? "border-red-300" : "border-gray-300"
                   }`}

@@ -17,6 +17,7 @@ const NursePage: React.FC = () => {
   const [success, setSuccess] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<string>("all")
 
   useEffect(() => {
     fetchPatients()
@@ -25,7 +26,7 @@ const NursePage: React.FC = () => {
   const fetchPatients = async () => {
     try {
       setLoading(true)
-      const data = await patientAPI.getPatientsByStatus("registered")
+      const data = await patientAPI.getAllPatients()
       setPatients(data)
     } catch (error) {
       console.error("Failed to fetch patients:", error)
@@ -34,6 +35,19 @@ const NursePage: React.FC = () => {
       setLoading(false)
     }
   }
+
+  const filteredPatients = patients.filter((patient) => {
+    const matchesSearch = 
+      searchTerm === "" ||
+      `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.phoneNumber?.includes(searchTerm) ||
+      patient.address?.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesStatus = 
+      statusFilter === "all" || patient.status === statusFilter
+
+    return matchesSearch && matchesStatus
+  })
 
   const handleSubmitNotes = async () => {
     if (!selectedPatient || !notes.trim()) {
@@ -69,13 +83,6 @@ const NursePage: React.FC = () => {
     setIsModalOpen(true)
   }
 
-  const filteredPatients = patients.filter((patient) =>
-    searchTerm === "" ||
-    `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.phoneNumber?.includes(searchTerm) ||
-    patient.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
   if (loading) {
     return <LoadingSpinner text="Loading registered patients..." />
   }
@@ -110,14 +117,17 @@ const NursePage: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4 text-sm text-gray-600">
             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-              {patients.length} registered patient{patients.length !== 1 ? "s" : ""}
+              {statusFilter === "all" 
+                ? `${patients.length} total patient${patients.length !== 1 ? "s" : ""}`
+                : `${filteredPatients.length} ${statusFilter.replace('_', ' ')} patient${filteredPatients.length !== 1 ? "s" : ""}`
+              }
             </span>
           </div>
         </div>
 
-        {/* Search */}
-        <div className="mt-4 mb-6">
-          <div className="relative flex-1 max-w-lg">
+        {/* Search and Filter */}
+        <div className="mt-4 flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
             <input
               type="text"
               placeholder="Search patients..."
@@ -126,6 +136,19 @@ const NursePage: React.FC = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-md pl-10"
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          </div>
+          <div className="sm:w-48">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md appearance-none"
+            >
+              <option value="all">All Status</option>
+              <option value="registered">Registered</option>
+              <option value="awaiting_doctor">Awaiting Doctor</option>
+              <option value="awaiting_medication">Awaiting Medication</option>
+              <option value="completed">Completed</option>
+            </select>
           </div>
         </div>
 
@@ -172,18 +195,25 @@ const NursePage: React.FC = () => {
                             {patient.phoneNumber}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm">
-                            <span className="inline-flex rounded-full px-2 text-xs font-semibold leading-5 bg-blue-100 text-blue-800">
+                            <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                              patient.status === 'registered' ? 'bg-blue-100 text-blue-800' :
+                              patient.status === 'awaiting_doctor' ? 'bg-yellow-100 text-yellow-800' :
+                              patient.status === 'awaiting_medication' ? 'bg-purple-100 text-purple-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
                               {patient.status.replace('_', ' ')}
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm">
-                            <button
-                              onClick={() => handleSelectPatient(patient)}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            >
-                              <FileText className="h-4 w-4 mr-1" />
-                              Add Vitals
-                            </button>
+                            {patient.status === 'registered' && (
+                              <button
+                                onClick={() => handleSelectPatient(patient)}
+                                className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                              >
+                                <FileText className="h-4 w-4 mr-1" />
+                                Add Vitals
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))

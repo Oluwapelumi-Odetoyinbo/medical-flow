@@ -53,8 +53,8 @@ export const patientAPI = {
   },
 
   // Get patients by status
-  getPatientsByStatus: async (status?: string): Promise<Patient[]> => {
-    const url = status ? `/patients?status=${status}&include=nurseNotes` : "/patients"
+  getPatientsByStatus: async (status: string | undefined): Promise<Patient[]> => {
+    const url = status ? `/patients?status=${status}&include=nurseNotes&sort=createdAt` : "/patients?sort=createdAt"
     const response = await api.get(url)
     console.log('API Response for status', status, ':', response.data)
     return response.data
@@ -62,7 +62,7 @@ export const patientAPI = {
 
   // Get all patients (for admin)
   getAllPatients: async (): Promise<Patient[]> => {
-    const response = await api.get("/patients")
+    const response = await api.get("/patients?sort=createdAt")
     return response.data
   },
 
