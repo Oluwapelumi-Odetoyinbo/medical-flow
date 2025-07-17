@@ -75,12 +75,15 @@ const DoctorPage: React.FC = () => {
     setIsModalOpen(true)
   }
 
-  const filteredPatients = patients.filter((patient) =>
-    searchTerm === "" ||
-    `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.phoneNumber?.includes(searchTerm) ||
-    patient.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredPatients = patients
+    .filter((patient) =>
+      searchTerm === "" ||
+      `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.phoneNumber?.includes(searchTerm) ||
+      patient.address?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    // Ensure we maintain the original order from the API
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
   if (loading) {
     return <LoadingSpinner text="Loading patients awaiting doctor..." />

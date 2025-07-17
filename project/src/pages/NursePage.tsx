@@ -36,18 +36,21 @@ const NursePage: React.FC = () => {
     }
   }
 
-  const filteredPatients = patients.filter((patient) => {
-    const matchesSearch = 
-      searchTerm === "" ||
-      `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.phoneNumber?.includes(searchTerm) ||
-      patient.address?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPatients = patients
+    .filter((patient) => {
+      const matchesSearch = 
+        searchTerm === "" ||
+        `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.phoneNumber?.includes(searchTerm) ||
+        patient.address?.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesStatus = 
-      statusFilter === "all" || patient.status === statusFilter
+      const matchesStatus = 
+        statusFilter === "all" || patient.status === statusFilter
 
-    return matchesSearch && matchesStatus
-  })
+      return matchesSearch && matchesStatus
+    })
+    // Ensure we maintain the original order from the API
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
   const handleSubmitNotes = async () => {
     if (!selectedPatient || !notes.trim()) {

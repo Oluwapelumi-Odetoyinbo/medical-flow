@@ -82,6 +82,9 @@ const AdminPage: React.FC = () => {
       }
     }
 
+    // Ensure we maintain the original order from the API
+    filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
     setFilteredPatients(filtered);
   };
 
