@@ -1,6 +1,6 @@
 export interface User {
   token: string
-  role: "registrar" | "nurse" | "doctor" | "pharmacist"
+  role: "registrar" | "nurse" | "doctor" | "pharmacist" | "admin"
   username?: string
 }
 
@@ -57,6 +57,8 @@ export const getRoleRedirectPath = (role: string): string => {
       return "/doctor"
     case "pharmacist":
       return "/pharmacist"
+    case "admin":
+      return "/admin"
     default:
       return "/login"
   }

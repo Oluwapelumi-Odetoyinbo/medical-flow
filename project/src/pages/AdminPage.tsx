@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { patientAPI } from '../services/api';
 import { Patient } from '../types/Patient';
-import PatientCard from '../components/common/PatientCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import EmptyState from '../components/common/EmptyState';
 import StatusBadge from '../components/common/StatusBadge';
 import { Shield, Search, Filter, BarChart3, Users, TrendingUp } from 'lucide-react';
+import { formatDate } from '../utils/dateUtils';
 
 const AdminPage: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -238,21 +238,56 @@ const AdminPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Patients List */}
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Patient Records</h2>
+        {/* Replace Patient Cards with Table */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <h2 className="text-lg font-semibold text-gray-900 p-4 border-b">Patient Records</h2>
           
           {filteredPatients.length === 0 ? (
-            <EmptyState
-              icon={Users}
-              title={patients.length === 0 ? "No patients found" : "No patients match your filters"}
-              description={patients.length === 0 ? "No patients have been registered in the system yet." : "Try adjusting your search criteria or filters."}
-            />
+            <div className="p-8">
+              <EmptyState
+                icon={Users}
+                title={patients.length === 0 ? "No patients found" : "No patients match your filters"}
+                description={patients.length === 0 ? "No patients have been registered in the system yet." : "Try adjusting your search criteria or filters."}
+              />
+            </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredPatients.map((patient) => (
-                <PatientCard key={patient.id} patient={patient} />
-              ))}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Patient Info
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredPatients.map((patient) => (
+                    <tr key={patient.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {patient.firstName} {patient.lastName}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{patient.phoneNumber}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge status={patient.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
