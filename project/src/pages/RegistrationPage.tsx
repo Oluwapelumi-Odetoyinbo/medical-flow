@@ -4,8 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
-import PhoneInput from 'react-phone-input-2'
-import 'react-phone-input-2/lib/style.css'
+
 import { patientAPI } from "../services/api"
 import { calculateAge } from "../utils/dateUtils"
 import { UserPlus, Calendar, Phone, MapPin, User, CheckCircle, X, Search } from "lucide-react"
@@ -311,28 +310,18 @@ const RegistrationPage: React.FC = () => {
                   <Phone className="h-4 w-4 inline mr-1" />
                   Phone Number
                 </label>
-                <PhoneInput
-                  country="ng"
+                <input
+                  type="tel"
+                  id="phoneNumber"
+                  name="phoneNumber"
                   value={formData.phoneNumber}
-                  onChange={(phone) => {
-                    setFormData(prev => ({ ...prev, phoneNumber: phone }))
-                    if (errors.phoneNumber) {
-                      setErrors(prev => ({ ...prev, phoneNumber: "" }))
-                    }
-                  }}
-                  inputClass={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  onChange={handleChange}
+                  maxLength={11}
+                  pattern="[0-9]{11}"
+                  placeholder="Enter 11-digit phone number"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
                     errors.phoneNumber ? "border-red-300" : "border-gray-300"
                   }`}
-                  containerClass="phone-input-container"
-                  buttonClass={`phone-input-button ${errors.phoneNumber ? "border-red-300" : "border-gray-300"}`}
-                  enableSearch
-                  searchPlaceholder="Search country..."
-                  inputProps={{
-                    id: "phoneNumber",
-                    name: "phoneNumber",
-                    required: true,
-                    placeholder: "Enter phone number"
-                  }}
                 />
                 {errors.phoneNumber && <p className="mt-1 text-sm text-red-600">{errors.phoneNumber}</p>}
               </div>
