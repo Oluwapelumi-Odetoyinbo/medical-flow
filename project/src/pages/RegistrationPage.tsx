@@ -309,7 +309,7 @@ const RegistrationPage: React.FC = () => {
               <div>
                   <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
                     <User className="h-4 w-4 inline mr-1" />
-                    Last Name
+                    Gender
                   </label>
                   <input
                     type="text"
@@ -318,7 +318,7 @@ const RegistrationPage: React.FC = () => {
                     value={formData.gender}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
-                    placeholder="Enter last name"
+                    placeholder="Enter  gender"
                   />
                   
                 </div>
