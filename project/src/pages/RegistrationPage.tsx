@@ -21,6 +21,7 @@ const RegistrationPage: React.FC = () => {
     dateOfBirth: "",
     phoneNumber: "",
     address: "",
+    gender: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [searchTerm, setSearchTerm] = useState("")
@@ -80,6 +81,7 @@ const RegistrationPage: React.FC = () => {
         dateOfBirth: "",
         phoneNumber: "",
         address: "",
+        gender: "",
       })
       setSuccess(true)
       setTimeout(() => setSuccess(false), 5000)
@@ -304,6 +306,22 @@ const RegistrationPage: React.FC = () => {
                 {formData.dateOfBirth && <p className="mt-1 text-sm text-blue-600">Age: {calculateAge(formData.dateOfBirth)} years</p>}
                 {errors.dateOfBirth && <p className="mt-1 text-sm text-red-600">{errors.dateOfBirth}</p>}
               </div>
+              <div>
+                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
+                    <User className="h-4 w-4 inline mr-1" />
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    id="gender"
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    placeholder="Enter last name"
+                  />
+                  
+                </div>
 
               <div>
                 <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
